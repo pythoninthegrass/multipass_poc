@@ -1,0 +1,25 @@
+---
+# Creates vmadmin keypair that will be used to log into the Multipass VMs
+# and the cloud-init file use when create the VMs.
+# Deletes any existing keys and cloud-init file.
+- name: Delete any existing public and private keys
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - user_key
+    - user_key.pub
+- name: Create vmadmin key-pair
+  shell: ssh-keygen -C vmadmin -N "" -f user_key
+  delegate_to: localhost
+- name: Delete any existing cloud-init file
+  file:
+    path: ../templates/cloud-init.yaml
+    state: absent
+- name: Create cloud-init file inserting the public key
+  template:
+    src: ../templates/cloud-init-template.j2
+    dest: cloud-init.yaml
+  delegate_to: localhost
+  vars:
+    public_key: "{{lookup('file', 'user_key.pub')}}"
