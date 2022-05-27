@@ -15,7 +15,7 @@ Use Ansible and Multipass to setup a local Kubernetes (k3s) cluster.
 * Run a sanity check via `ansible-playbook main-playbook.yml --check`
 * Assuming no errors occur, re-run the playbook without the dry-run flag: `ansible-playbook main-playbook.yml`
 * Basic multipass commands
-    ```bash
+    ```
     # launch instance
     multipass launch --name foo
 
