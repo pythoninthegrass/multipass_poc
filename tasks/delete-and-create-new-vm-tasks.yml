@@ -11,6 +11,7 @@
 - name: Log VM creation start
   debug:
     msg: "About to create VM {{ vmname }}..."
+
 - name: Delete existing VM
   shell: |
     multipass info {{ vmname }} > /dev/null 2> /dev/null
@@ -19,9 +20,11 @@
       multipass purge
     fi
   delegate_to: localhost
+
 - name: Create new VM
   shell: multipass launch --name {{ vmname }} --cloud-init cloud-init.yml {{ vmcreationparams }}
   delegate_to: localhost
+
 - name: Log VM creation completion
   debug:
     msg: "Finished creating VM {{ vmname }}."
