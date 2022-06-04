@@ -1,3 +1,4 @@
 *.retry
 user_key
 user_key.pub
+**/cloud-init.yml
