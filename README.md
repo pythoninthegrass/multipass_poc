@@ -20,13 +20,13 @@ Use Ansible and Multipass to setup a local Kubernetes (k3s) cluster.
     alias m='multipass'
 
     # launch default instance
-    multipass launch --name foo
+    multipass launch
 
-    # launch image name (cf. jammy == 22.04)
-    multipass launch <jammy|22.04> --name foo
+    # launch image name + OS (cf. jammy == 22.04)
+    multipass launch --name foo <jammy|22.04> 
 
-    # cloud-init
-    multipass launch -n bar --cloud-init cloud-config.yaml
+    # cloud-init + specs
+    multipass launch -n bar -mem --cpu 1 --disk 5G --memory 2G 22.04 --cloud-init cloud-config.yaml
 
     # mount host directory
     multipass mount ~/Downloads foo:~/Downloads
