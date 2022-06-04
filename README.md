@@ -55,7 +55,7 @@ Use Ansible and Multipass to setup a local Kubernetes (k3s) cluster.
     multipass stop --all
 
     # cleanup
-    multipass delete bar
+    multipass delete <bar|--all>
     multipass purge
 
     # find alternate images
