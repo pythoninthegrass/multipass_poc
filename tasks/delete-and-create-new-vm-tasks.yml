@@ -20,7 +20,7 @@
     fi
   delegate_to: localhost
 - name: Create new VM
-  shell: multipass launch --name {{ vmname }} --cloud-init cloud-init.yaml {{ vmcreationparams }}
+  shell: multipass launch --name {{ vmname }} --cloud-init cloud-init.yml {{ vmcreationparams }}
   delegate_to: localhost
 - name: Log VM creation completion
   debug:

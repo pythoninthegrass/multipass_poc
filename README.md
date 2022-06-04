@@ -75,10 +75,14 @@ Use Ansible and Multipass to setup a local Kubernetes (k3s) cluster.
     ```
 
 ## TODO
+* `cloud-config`
+  * split `cloud-init.yml` by master and workers
+  * docker only gets installed on master
+  * QA .bashrc getting clobbered even w/append
+  * debug nameservers
+  * maybe add Fedora or other distros
 * Setup `$KUBECONFIG`
 * [terraform multipass provider](https://github.com/roiterorh/multipass-terraform)
-* Customize cloud-init image
-  * Maybe add Fedora or other distros
 * Refactor kludgey variables
 * Switch to either k0s or rancher instead of multipass
 

@@ -1,6 +1,91 @@
+## template: jinja
+# cloud-config
+
+output: {all: '| tee -a /var/log/cloud-init-output.log'}  # stored inside vm
+
+timezone: "America/Chicago"
+
+# RHEL/CentOS
+# manage-resolv-conf: true
+# resolv_conf:
+#   nameservers:
+#     - '1.1.1.1'
+#     - '1.0.0.1'
+
+# Debian/Ubuntu (netplan)
+network:
+  version: 2
+  ethernets:
+    eno1:
+      dhcp4: true
+      nameservers:
+          addresses: [1.1.1.1, 1.0.0.1]
+
+package_update: true                # default: true
+package_upgrade: false              # default: false
+package_reboot_if_required: true
+
+apt:
+  sources:
+    docker.list:
+      source: deb [arch=amd64] https://download.docker.com/linux/ubuntu $RELEASE stable
+      keyid: 9DC858229FC7DD38854AE2D88D81803C0EBFCD88
+
+packages:
+  - apt-transport-https
+  - bash-completion
+  - ca-certificates
+  - curl
+  - docker-ce
+  - docker-ce-cli
+  - gnupg-agent
+  - python3
+  - python3-pip
+  - software-properties-common
+  - ssh-import-id
+  - tree
+  - vim
+
 users:
   - default
-  - name: vmadmin
-    sudo:  ALL=(ALL) NOPASSWD:ALL
+  - name: ubuntu
+    gecos: Ubuntu
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    home: /home/ubuntu
+    groups: [adm, audio, cdrom, docker, libvirt, lxd, netdev, sudo]
+    lock_passwd: true
+    shell: /bin/bash
+    no_ssh_fingerprints: true
     ssh_authorized_keys:
       - {{ public_key }}
+
+write_files:
+  - path: /home/ubuntu/.bashrc
+    content: |
+      # custom
+
+      alias update='sudo apt update && sudo apt upgrade && sudo apt dist-upgrade && sudo apt autoremove && sudo apt auto-clean'
+    append: true
+  - path: /home/ubuntu/.bash_profile
+    content: |
+      [[ -s ~/.bashrc ]] && source ~/.bashrc
+  - path: /etc/systemd/system/container.service
+    owner: root:root
+    permissions: '0755'
+    content: |
+        [Unit]
+        Description=Run container
+        Requires=docker.service
+        After=docker.service
+
+        [Service]
+        Restart=always
+        ExecStartPre=-/usr/bin/docker rm container
+        ExecStart=/usr/bin/docker run --rm --name container hello-world
+        ExecStop=/usr/bin/docker stop -t 2 container
+
+runcmd:
+  - systemctl start container
+  - systemctl enable container
+
+final_message: "The system is finally up, after $UPTIME seconds"
