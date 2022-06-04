@@ -16,17 +16,34 @@ Use Ansible and Multipass to setup a local Kubernetes (k3s) cluster.
 * Assuming no errors occur, re-run the playbook without the dry-run flag: `ansible-playbook main-playbook.yml`
 * Basic multipass commands
     ```
-    # launch instance
+    # ~/.bashrc alias
+    alias m='multipass'
+
+    # launch default instance
     multipass launch --name foo
+
+    # launch image name (cf. jammy == 22.04)
+    multipass launch <jammy|22.04> --name foo
 
     # cloud-init
     multipass launch -n bar --cloud-init cloud-config.yaml
 
+    # mount host directory
+    multipass mount ~/Downloads foo:~/Downloads
+
     # see instances
     multipass list
 
-    # ssh
+    # ssh (built-in) (starts instance if stopped)
     multipass shell foo
+
+    # ssh (manual)
+    cat ~/.ssh/id_rsa.pub | pbcopy
+    multipass shell foo
+    vi ~/.ssh/authorized_keys
+    exit
+    ip_addr=$(multipass info foo | awk '/IPv4/ {print $NF}')
+    ssh "ubuntu@${ip_addr}"
 
     # run commands
     multipass exec foo -- lsb_release -a
