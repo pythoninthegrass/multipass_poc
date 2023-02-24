@@ -17,10 +17,10 @@ Use Ansible and Multipass to setup a local Kubernetes (k3s) cluster.
 * Basic multipass commands
     ```
     # launch instance
-    multipass launch --name foo
+    multipass launch --name testvm
 
     # cloud-init
-    multipass launch -n bar --cloud-init cloud-config.yaml
+    multipass launch -n testvm --cloud-init cloud-init.yaml
 
     # see instances
     multipass list
