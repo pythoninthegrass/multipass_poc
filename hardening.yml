@@ -1,0 +1,106 @@
+---
+- hosts: localhost
+  any_errors_fatal: true
+  tasks:
+    - name: Install git
+      become: true
+      ansible.builtin.package:
+        name: git
+        state: present
+
+    - name: Checkout konstruktoid.hardening
+      become: true
+      ansible.builtin.git:
+        repo: 'https://github.com/pythoninthegrass/ansible-role-hardening'
+        dest: /etc/ansible/roles/konstruktoid.hardening
+        version: master
+
+    - name: Include the hardening role
+      ansible.builtin.include_role:
+        name: konstruktoid.hardening
+      vars:
+        auditd_apply_audit_rules: false
+        block_blacklisted: true
+        cron: true
+        disable_wireless: false
+        disable_ipv6: false
+        dns: 127.0.0.1 1.1.1.1
+        fallback_dns: 9.9.9.9 1.0.0.1
+        install_aide: false
+        reboot_ubuntu: false
+        fs_modules_blocklist:
+          - cramfs
+          - freevxfs
+          - hfs
+          - hfsplus
+          - jffs2
+          - squashfs
+          - udf
+        misc_modules_blocklist:
+          - bluetooth
+          - bnep
+          - btusb
+          - can
+          - cpia2
+          - firewire-core
+          - floppy
+          - n_hdlc
+          - net-pf-31
+          - pcspkr
+          - soundcore
+          - thunderbolt
+          - usb-midi
+          - usb-storage
+          - uvcvideo
+          - v4l2_common
+        net_modules_blocklist:
+          - atm
+          - dccp
+          - sctp
+          - rds
+          - tipc
+        ntp: 0.ubuntu.pool.ntp.org 1.ubuntu.pool.ntp.org
+        fallback_ntp: 2.ubuntu.pool.ntp.org 3.ubuntu.pool.ntp.org
+        system_upgrade: false
+        packages_blocklist:
+          - apport*
+          - autofs
+          - avahi*
+          - avahi-*
+          - beep
+          - pastebinit
+          - popularity-contest
+          - prelink
+          - talk*
+          - telnet*
+          - tftp*
+          - whoopsie
+          - xinetd
+          - yp-tools
+          - ypbind
+        packages_ubuntu:
+          - build-essential
+          - docker.io
+          - fwupd
+          - net-tools
+          - procps
+          - python3-pip
+          - secureboot-db
+        ufw_enable: true
+        ufw_outgoing_traffic:
+          - 22
+          - 53
+          - 80
+          - 123
+          - 443
+          - 853
+          - 1812
+          - 18120
+        delete_users:
+          - games
+          - gnats
+          - irc
+          - list
+          - news
+          - sync
+          - uucp

@@ -35,7 +35,7 @@ network:
 
 package_update: true
 package_upgrade: true
-packages: [build-essential, docker.io, net-tools, procps, python3-pip]
+packages: [bats, build-essential, docker.io, net-tools, procps, python3-pip]
 # https://github.com/number5/cloud-init/blob/main/doc/examples/cloud-config-apt.txt#L21
 apt_get_command: ["apt-get", "--option=Dpkg::Options::=--force-confold", "--option=Dpkg::options::=--force-unsafe-io", "--assume-yes", "--quiet", "--no-install-recommends"]
 
@@ -71,6 +71,7 @@ write_files:
 
 runcmd:
   - mkdir -p /home/ubuntu/git
+  - git clone https://github.com/konstruktoid/hardening.git /home/ubuntu/git/hardening
   - git clone https://github.com/pythoninthegrass/ansible-role-hardening.git /home/ubuntu/git/ansible-role-hardening
   - chown -R ubuntu:ubuntu /home/ubuntu/git
   - chmod -R 755 /home/ubuntu/git
