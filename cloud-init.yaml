@@ -67,7 +67,7 @@ write_files:
       # Verify that shell is interactive
       if [[ $- != *i* ]]; then return; fi
 
-      alias update='sudo apt update && sudo apt upgrade && sudo apt dist-upgrade && sudo apt autoremove && sudo apt auto-clean'
+      alias update='sudo apt update && sudo apt upgrade -y && sudo apt dist-upgrade -y && sudo apt autoremove -y && sudo apt auto-clean'
       alias ll='ls -FGlAhp'
       alias mkdir='mkdir -pv'
       alias ..='cd ../'
