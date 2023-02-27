@@ -1,7 +1,8 @@
 #cloud-config
 # vim: syntax=yaml
 
-output: {all: '| tee -a /var/log/cloud-init-output.log'}  # stored inside vm
+# store logs inside vm
+output: {all: '| tee -a /var/log/cloud-init.log'}
 
 timezone: "America/Chicago"
 
@@ -16,7 +17,7 @@ network:
         addresses: [1.1.1.1, 1.0.0.1]
 
 package_update: true              # default: true
-package_upgrade: false            # default: false
+package_upgrade: true             # default: false
 # https://github.com/number5/cloud-init/blob/main/doc/examples/cloud-config-apt.txt#L21
 apt_get_command: ["apt-get", "--option=Dpkg::Options::=--force-confold", "--option=Dpkg::options::=--force-unsafe-io", "--assume-yes", "--quiet", "--no-install-recommends"]
 packages:
@@ -26,13 +27,14 @@ packages:
   - build-essential
   - ca-certificates
   - curl
-  - docker-ce
-  - docker-ce-cli
+  - docker.io
+  - fwupd
   - gnupg-agent
   - net-tools
   - procps
   - python3
   - python3-pip
+  - secureboot-db
   - software-properties-common
   - ssh-import-id
   - tree
@@ -138,12 +140,15 @@ write_files:
   #     ExecStartPre=-/usr/bin/docker rm container
   #     ExecStart=/usr/bin/docker run --rm --name container hello-world
   #     ExecStop=/usr/bin/docker stop -t 2 container
+
 runcmd:
   - mkdir -p /home/ubuntu/git
-  - git clone https://github.com/konstruktoid/hardening.git /home/ubuntu/git/hardening
+  - git clone https://github.com/pythoninthegrass/ansible-role-hardening /home/ubuntu/git/hardening
   - git clone https://github.com/pythoninthegrass/ansible-role-hardening.git /home/ubuntu/git/ansible-role-hardening
   - chown -R ubuntu:ubuntu /home/ubuntu/git
   - chmod -R 755 /home/ubuntu/git
+  - mkdir -p /home/ubuntu/.ansible
+  - chmod 777 /home/ubuntu/.ansible
   - usermod -aG docker ubuntu
   # * smoke test
   # - systemctl start container

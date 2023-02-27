@@ -1,18 +1,25 @@
 ---
 - hosts: localhost
   any_errors_fatal: true
+  hosts: all
+  become: true
+  vars:
+    os_environment:
+      - key: EDITOR
+        value: vi
   tasks:
     - name: Install git
-      become: true
       ansible.builtin.package:
         name: git
         state: present
 
     - name: Checkout konstruktoid.hardening
-      become: true
       ansible.builtin.git:
-        repo: 'https://github.com/pythoninthegrass/ansible-role-hardening'
-        dest: /etc/ansible/roles/konstruktoid.hardening
+        repo: https://github.com/pythoninthegrass/ansible-role-hardening
+        dest: /home/ubuntu/git/hardening
+        clone: yes
+        update: yes
+        single_branch: yes
         version: master
 
     - name: Include the hardening role
@@ -85,8 +92,7 @@
           - build-essential
           - ca-certificates
           - curl
-          - docker-ce
-          - docker-ce-cli
+          - docker.io
           - fwupd
           - gnupg-agent
           - net-tools
@@ -98,7 +104,6 @@
           - ssh-import-id
           - tree
           - vim
-
         ufw_enable: true
         ufw_outgoing_traffic:
           - 22

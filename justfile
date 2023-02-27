@@ -5,11 +5,12 @@ set dotenv-load
 
 # # set env var
 export APP		:= "cloud-conf"
-export CONF		:= "cloud-init.yaml"
-export ENTRY	:= "cloud-init.yaml"
+export CONF		:= "cloud-init.yml"
 export CPU		:= "2"
-export MEM		:= "2G"
 export DISK		:= "5G"
+export ENTRY	:= "cloud-init.yml"
+export MEM		:= "2G"
+export PLAY     := "hardening.yml"
 export VM		:= "testvm"
 
 # x86_64/arm64
@@ -24,30 +25,42 @@ arch := `uname -m`
 # # home directory
 # home_dir := env_var('HOME')
 
-# # docker-compose / docker compose
-# # * https://docs.docker.com/compose/install/linux/#install-using-the-repository
-# docker-compose := if `command -v docker-compose; echo $?` == "0" {
-# 	"docker-compose"
-# } else {
-# 	"docker compose"
-# }
+# docker-compose / docker compose
+# * https://docs.docker.com/compose/install/linux/#install-using-the-repository
+docker-compose := if `command -v docker-compose; echo $?` == "0" {
+	"docker-compose"
+} else {
+	"docker compose"
+}
 
 # [halp]     list available commands
 default:
 	just --list
 
-# [git]      update pre-commit hooks
-pre-commit:
-	@echo "To install pre-commit hooks:"
-	@echo "pre-commit install"
-	@echo "Updating pre-commit hooks..."
-	pre-commit autoupdate
+# [deps]     update dependencies
+update-deps:
+	#!/usr/bin/env bash
+	# set -euxo pipefail
+	find . -maxdepth 3 -name "pyproject.toml" -exec \
+		echo "[{}]" \; -exec \
+		echo "Clearring pypi cache..." \; -exec \
+		poetry cache clear --all pypi --no-ansi \; -exec \
+		poetry update --lock --no-ansi \;
 
-# [multipass]list multipass instances
+# [deps]     export requirements.txt
+export-reqs: update-deps
+	#!/usr/bin/env bash
+	# set -euxo pipefail
+	find . -maxdepth 3 -name "pyproject.toml" -exec \
+		echo "[{}]" \; -exec \
+		echo "Exporting requirements.txt..." \; -exec \
+		poetry export --no-ansi --without-hashes --output requirements.txt \;
+
+# [multi]    list multipass instances
 list:
 	multipass list
 
-# [multipass]launch multipass instance
+# [multi]    launch multipass instance
 launch:
 	multipass launch -n {{VM}} \
 	--cpus {{CPU}} \
@@ -56,23 +69,23 @@ launch:
 	--cloud-init {{CONF}} \
 	-v
 
-# [multipass]start multipass instance
+# [multi]    start multipass instance
 start:
 	multipass start {{VM}}
 
-# [multipass]shell into multipass instance
+# [multi]    shell into multipass instance
 shell: start
 	multipass shell {{VM}}
 
-# [multipass]stop multipass instance
+# [multi]    stop multipass instance
 stop:
 	multipass stop {{VM}}
 
-# [multipass]delete multipass instance
+# [multi]    delete multipass instance
 delete: stop
 	multipass delete {{VM}}
 
-# [multipass]purge multipass instance
+# [multi]    purge multipass instance
 purge: delete
 	multipass purge
 
@@ -96,3 +109,11 @@ check-ci:
 	-v $(pwd):/app \
 	{{APP}} \
 	{{ENTRY}}
+
+# [ansible]  run ansible playbook
+ansible: start
+	#!/usr/bin/env bash
+	# set -euxo pipefail
+	multipass exec {{VM}} -- \
+	cd /home/ubuntu/git/ansible-role-hardening \
+	&& ansible-playbook hardening.yml -i /etc/ansible/hosts
