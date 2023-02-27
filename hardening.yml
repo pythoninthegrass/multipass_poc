@@ -79,13 +79,26 @@
           - yp-tools
           - ypbind
         packages_ubuntu:
+          - apt-transport-https
+          - bash-completion
+          - bats
           - build-essential
-          - docker.io
+          - ca-certificates
+          - curl
+          - docker-ce
+          - docker-ce-cli
           - fwupd
+          - gnupg-agent
           - net-tools
           - procps
+          - python3
           - python3-pip
           - secureboot-db
+          - software-properties-common
+          - ssh-import-id
+          - tree
+          - vim
+
         ufw_enable: true
         ufw_outgoing_traffic:
           - 22
