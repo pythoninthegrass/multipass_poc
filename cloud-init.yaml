@@ -1,27 +1,9 @@
 #cloud-config
 # vim: syntax=yaml
 
-groups:
-  - docker
+output: {all: '| tee -a /var/log/cloud-init-output.log'}  # stored inside vm
 
-users:
-  - name: ubuntu
-    sudo: ALL=(ALL) NOPASSWD:ALL
-    gecos: Default User
-    groups: users,admin,wheel,docker
-    shell: /bin/bash
-    ssh_import_id:
-      - gh:pythoninthegrass
-  - name: ansible
-    sudo: ALL=(ALL) NOPASSWD:ALL
-    gecos: Ansible User
-    groups: users,admin,wheel
-    shell: /bin/bash
-
-ssh_authorized_keys:
-  - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDXjylZLJVRasvFbl3OBM0WFaBspXzhU35GpX3kbCC0PuD8aH9GGJWUpcA4pgimzUXDd/PUIDe9hQSAnikLEk6skm5lhHRLUqqW05srLevYT7vaLi2fplLrn7M1FDUJ8Gz2NatENmZGQho+g1G3CV9UOHhukVP1ULXT/cwWeI2CU5hGQypOZLN8Orymu0rJNwLcadnx/azuHXnfNvZVhKD4ghjiIJfWz++v+rXRTizx5FBPg2MOu1I/7xW5fBjVlBJl3AMdjiCuKWYkEcE5OhYRtexg+pv1lyvYgg0mYSXGJB0ucXjiVPwtVGjo9/LtG6mfYbdhOxTbF5Id4j2tZsA760MC7BYUKgBvc7SxTsNYpoWIdD+T1bx4Qa42Dv3+q0QdBjaGVGEHntAFBSLuKsyBtbylX/d1SzrUZWFJ9+vKzzqdkwKQKSSj+SPQqVL1ablumrU13q5NsuMc33XEsfVp9BYXOJmz9IwMNx6piMhQlBA6VqrmcCZr4i4LlxNhvA0= vmadmin
-
-timezone: America/Chicago
+timezone: "America/Chicago"
 
 # TODO: QA
 # /etc/netplan/50-cloud-init.yaml
@@ -31,15 +13,116 @@ network:
     enp0s2:
       dhcp4: true
       nameservers:
-        addresses: [8.8.8.8, 8.8.4.4]
+        addresses: [1.1.1.1, 1.0.0.1]
 
-package_update: true
-package_upgrade: true
-packages: [bats, build-essential, docker.io, net-tools, procps, python3-pip]
+package_update: true              # default: true
+package_upgrade: false            # default: false
 # https://github.com/number5/cloud-init/blob/main/doc/examples/cloud-config-apt.txt#L21
 apt_get_command: ["apt-get", "--option=Dpkg::Options::=--force-confold", "--option=Dpkg::options::=--force-unsafe-io", "--assume-yes", "--quiet", "--no-install-recommends"]
+packages:
+  - apt-transport-https
+  - bash-completion
+  - bats
+  - build-essential
+  - ca-certificates
+  - curl
+  - docker-ce
+  - docker-ce-cli
+  - gnupg-agent
+  - net-tools
+  - procps
+  - python3
+  - python3-pip
+  - software-properties-common
+  - ssh-import-id
+  - tree
+  - vim
+
+groups:
+  - docker
+
+users:
+  - name: ubuntu
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    gecos: Default User
+    home: /home/ubuntu
+    groups: users,admin,netdev,sudo,wheel,docker
+    lock_passwd: true
+    shell: /bin/bash
+    no_ssh_fingerprints: true
+    ssh_import_id:
+      - gh:pythoninthegrass
+  - name: ansible
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    gecos: Ansible User
+    groups: users,admin,netdev,sudo,wheel
+    shell: /bin/bash
+
+ssh_authorized_keys:
+  - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDXjylZLJVRasvFbl3OBM0WFaBspXzhU35GpX3kbCC0PuD8aH9GGJWUpcA4pgimzUXDd/PUIDe9hQSAnikLEk6skm5lhHRLUqqW05srLevYT7vaLi2fplLrn7M1FDUJ8Gz2NatENmZGQho+g1G3CV9UOHhukVP1ULXT/cwWeI2CU5hGQypOZLN8Orymu0rJNwLcadnx/azuHXnfNvZVhKD4ghjiIJfWz++v+rXRTizx5FBPg2MOu1I/7xW5fBjVlBJl3AMdjiCuKWYkEcE5OhYRtexg+pv1lyvYgg0mYSXGJB0ucXjiVPwtVGjo9/LtG6mfYbdhOxTbF5Id4j2tZsA760MC7BYUKgBvc7SxTsNYpoWIdD+T1bx4Qa42Dv3+q0QdBjaGVGEHntAFBSLuKsyBtbylX/d1SzrUZWFJ9+vKzzqdkwKQKSSj+SPQqVL1ablumrU13q5NsuMc33XEsfVp9BYXOJmz9IwMNx6piMhQlBA6VqrmcCZr4i4LlxNhvA0= vmadmin
 
 write_files:
+  - path: /home/ubuntu/.bashrc
+    content: |
+      # Verify that shell is interactive
+      if [[ $- != *i* ]]; then return; fi
+
+      alias update='sudo apt update && sudo apt upgrade && sudo apt dist-upgrade && sudo apt autoremove && sudo apt auto-clean'
+      alias ll='ls -FGlAhp'
+      alias mkdir='mkdir -pv'
+      alias ..='cd ../'
+      alias ...='cd ../../'
+      cd() { builtin cd "$@"; ll; }
+
+      HISTCONTROL=ignoreboth
+      shopt -s histappend
+      HISTSIZE=1000
+      HISTFILESIZE=2000
+
+      shopt -s checkwinsize
+
+      if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
+          debian_chroot=$(cat /etc/debian_chroot)
+      fi
+
+      case "$TERM" in
+        xterm-color|*-256color) color_prompt=yes;;
+      esac
+
+      if [ "$color_prompt" = yes ]; then
+          PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\] \nλ '
+      else
+          PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w \nλ '
+      fi
+      unset color_prompt force_color_prompt
+
+      case "$TERM" in
+      xterm*|rxvt*)
+          PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
+          ;;
+      *)
+          ;;
+      esac
+
+    append: false
+  - path: /home/ubuntu/.bash_profile
+    content: |
+      [[ -s ~/.bashrc ]] && source ~/.bashrc
+
+    append: false
+  - path: /etc/ansible/hosts
+    owner: root:root
+    permissions: '0644'
+    content: |
+      [all]
+      localhost ansible_connection=local
+
+      [all:vars]
+      ansible_user=ansible
+      ansible_become=yes
+      ansible_become_method=sudo
+      ansible_python_interpreter=/usr/bin/python3
+
   # * smoke test
   # - path: /etc/systemd/system/container.service
   #   owner: root:root
@@ -55,20 +138,6 @@ write_files:
   #     ExecStartPre=-/usr/bin/docker rm container
   #     ExecStart=/usr/bin/docker run --rm --name container hello-world
   #     ExecStop=/usr/bin/docker stop -t 2 container
-
-  - path: /etc/ansible/hosts
-    owner: root:root
-    permissions: '0644'
-    content: |
-      [all]
-      localhost ansible_connection=local
-
-      [all:vars]
-      ansible_user=ansible
-      ansible_become=yes
-      ansible_become_method=sudo
-      ansible_python_interpreter=/usr/bin/python3
-
 runcmd:
   - mkdir -p /home/ubuntu/git
   - git clone https://github.com/konstruktoid/hardening.git /home/ubuntu/git/hardening
@@ -83,3 +152,5 @@ runcmd:
   - ansible-galaxy collection install community.general
   # * smoke test
   # - ansible all -m ping -i /etc/ansible/hosts
+
+final_message: "The system is finally up, after $UPTIME seconds"
