@@ -6,10 +6,10 @@ set dotenv-load
 # # set env var
 export APP		:= "cloud-conf"
 export CONF		:= "cloud-init.yml"
-export CPU		:= "2"
+export CPU		:= "4"
 export DISK		:= "5G"
 export ENTRY	:= "cloud-init.yml"
-export MEM		:= "2G"
+export MEM		:= "4G"
 export PLAY     := "hardening.yml"
 export VM		:= "testvm"
 

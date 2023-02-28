@@ -1,6 +1,6 @@
 ---
 - hosts: localhost
-  any_errors_fatal: true
+  connection: local
   become: true
   vars:
     os_environment:
@@ -14,7 +14,7 @@
 
     - name: Checkout konstruktoid.hardening
       ansible.builtin.git:
-        repo: https://github.com/pythoninthegrass/ansible-role-hardening
+        repo: https://github.com/pythoninthegrass/ansible-role-hardening.git
         dest: /home/ubuntu/git/hardening
         clone: yes
         update: yes

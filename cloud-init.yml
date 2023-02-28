@@ -6,37 +6,20 @@ output: {all: '| tee -a /var/log/cloud-init.log'}
 
 timezone: "America/Chicago"
 
-# TODO: QA
-# /etc/netplan/50-cloud-init.yaml
-network:
-  version: 2
-  ethernets:
-    enp0s2:
-      dhcp4: true
-      nameservers:
-        addresses: [1.1.1.1, 1.0.0.1]
-
-package_update: true              # default: true
-package_upgrade: true             # default: false
+package_update: true          # default: true
+package_upgrade: false        # default: false
 # https://github.com/number5/cloud-init/blob/main/doc/examples/cloud-config-apt.txt#L21
 apt_get_command: ["apt-get", "--option=Dpkg::Options::=--force-confold", "--option=Dpkg::options::=--force-unsafe-io", "--assume-yes", "--quiet", "--no-install-recommends"]
 packages:
-  - apt-transport-https
-  - bash-completion
+  - ansible
   - bats
   - build-essential
   - ca-certificates
   - curl
   - docker.io
-  - fwupd
-  - gnupg-agent
   - net-tools
-  - procps
   - python3
   - python3-pip
-  - secureboot-db
-  - software-properties-common
-  - ssh-import-id
   - tree
   - vim
 
@@ -65,11 +48,16 @@ ssh_authorized_keys:
 
 write_files:
   - path: /home/ubuntu/.bashrc
+    owner: ubuntu:ubuntu
+    permissions: '0644'
+    defer: false
+    append: false
     content: |
       # Verify that shell is interactive
       if [[ $- != *i* ]]; then return; fi
 
       alias update='sudo apt update && sudo apt upgrade -y && sudo apt dist-upgrade -y && sudo apt autoremove -y && sudo apt auto-clean'
+      alias python='python3'
       alias ll='ls -FGlAhp'
       alias mkdir='mkdir -pv'
       alias ..='cd ../'
@@ -106,15 +94,46 @@ write_files:
           ;;
       esac
 
-    append: false
   - path: /home/ubuntu/.bash_profile
+    owner: ubuntu:ubuntu
+    permissions: '0644'
+    defer: false
+    append: false
     content: |
       [[ -s ~/.bashrc ]] && source ~/.bashrc
 
-    append: false
-  - path: /etc/ansible/hosts
-    owner: root:root
+  - path: /home/ubuntu/git/.gitignore
+    owner: ubuntu:ubuntu
     permissions: '0644'
+    defer: false
+    append: false
+    content: |
+      .env
+      .gitattributes
+      .venv
+      *.bak
+      **/scratch*
+      creds/
+      service_account.json
+      settings.ini
+
+  - path: /home/ubuntu/.gitconfig
+    owner: ubuntu:ubuntu
+    permissions: '0644'
+    defer: false
+    append: false
+    content: |
+      [core]
+        excludesfile = /home/ubuntu/git/.gitignore
+      [user]
+        email = 4097471+pythoninthegrass@users.noreply.github.com
+        name = pythoninthegrass
+
+  - path: /etc/ansible/hosts
+    owner: ansible:ansible
+    permissions: '0644'
+    defer: false
+    append: false
     content: |
       [all]
       localhost ansible_connection=local
@@ -125,35 +144,66 @@ write_files:
       ansible_become_method=sudo
       ansible_python_interpreter=/usr/bin/python3
 
-  # * smoke test
-  # - path: /etc/systemd/system/container.service
-  #   owner: root:root
-  #   permissions: '0755'
-  #   content: |
-  #     [Unit]
-  #     Description=Run container
-  #     Requires=docker.service
-  #     After=docker.service
+  - path: /etc/netplan/50-cloud-init.yaml
+    owner: root:root
+    permissions: '0644'
+    defer: false
+    append: false
+    content: |
+      network:
+        version: 2
+        ethernets:
+          enp0s2:
+            dhcp4: true
+            match:
+              macaddress: 0a:74:61:3b:44:00
+            set-name: enp0s2
+            nameservers:
+              addresses: [1.1.1.1, 1.0.0.1]
 
-  #     [Service]
-  #     Restart=always
-  #     ExecStartPre=-/usr/bin/docker rm container
-  #     ExecStart=/usr/bin/docker run --rm --name container hello-world
-  #     ExecStop=/usr/bin/docker stop -t 2 container
+# # * smoke test
+#   - path: /etc/systemd/system/container.service
+#     owner: root:root
+#     permissions: '0755'
+#     content: |
+#       [Unit]
+#       Description=Run container
+#       Requires=docker.service
+#       After=docker.service
+
+#       [Service]
+#       Restart=always
+#       ExecStartPre=-/usr/bin/docker rm container
+#       ExecStart=/usr/bin/docker run --rm --name container hello-world
+#       ExecStop=/usr/bin/docker stop -t 2 container
+
+# TODO: QA
+ansible:
+  install_method: pip
+  package_name: ansible
+  run_user: ubuntu
+  pull:
+    url: "https://github.com/pythoninthegrass/multipass_poc.git"
+    playbook_name: git.yml
+
+# ansible:
+#   install_method: pip
+#   pull:
+#     url: "https://github.com/pythoninthegrass/multipass_poc.git"
+#     playbook_name: hardening.yml
 
 runcmd:
-  - mkdir -p /home/ubuntu/git
-  - git clone https://github.com/pythoninthegrass/ansible-role-hardening /home/ubuntu/git/hardening
-  - git clone https://github.com/pythoninthegrass/ansible-role-hardening.git /home/ubuntu/git/ansible-role-hardening
-  - chown -R ubuntu:ubuntu /home/ubuntu/git
-  - chmod -R 755 /home/ubuntu/git
   - mkdir -p /home/ubuntu/.ansible
-  - chmod 777 /home/ubuntu/.ansible
+  - chown -R ansible:ansible /home/ubuntu/.ansible
+  - chmod -R 0644 /home/ubuntu/.ansible
+  # - mkdir -p /home/ubuntu/git
+  # - chown -R ubuntu:ubuntu /home/ubuntu/git
+  # - chmod -R 0644 /home/ubuntu/git
   - usermod -aG docker ubuntu
   # * smoke test
   # - systemctl start container
   # - systemctl enable container
-  - sudo python3 -m pip install ansible
+  # - sudo python3 -m pip install ansible
   - ansible-galaxy collection install community.general
   # * smoke test
   # - ansible all -m ping -i /etc/ansible/hosts
