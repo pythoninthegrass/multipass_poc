@@ -6,10 +6,11 @@ set dotenv-load
 # # set env var
 export APP		:= "cloud-conf"
 export CONF		:= "cloud-init.yml"
-export CPU		:= "2"
+export CPU		:= "4"
 export DISK		:= "5G"
+export DRIVER   := "qemu"
 export ENTRY	:= "cloud-init.yml"
-export MEM		:= "2G"
+export MEM		:= "4G"
 export PLAY     := "hardening.yml"
 export VM		:= "testvm"
 
@@ -59,6 +60,18 @@ export-reqs: update-deps
 # [multi]    list multipass instances
 list:
 	multipass list
+
+# [multi]    multipass instance info
+info:
+    multipass info --format yaml {{VM}}
+
+# TODO: QA
+# [multi]    multipass vm driver
+driver:
+    # multipass set local.passphrase
+    # multipass authenticate
+    multipass set local.driver={{DRIVER}}
+    multipass get local.driver
 
 # [multi]    launch multipass instance
 launch:
