@@ -3,7 +3,8 @@
 ---
 - hosts: localhost
   connection: local
-  gather_facts: False
+  become: true
+  gather_facts: false
   any_errors_fatal: true
   vars:
     os_environment:
@@ -16,25 +17,20 @@
       delegate_to: localhost
 
     - name: Install git
-      become: true
       ansible.builtin.package:
         name: git
         state: present
 
     - name: Setup directory for git repos
-      become: true
-      become_user: "{{ local_user }}"
       ansible.builtin.file:
         path: "{{ lookup('env', 'HOME') }}/git"
         state: directory
         owner: "{{ local_user }}"
         group: "{{ local_user }}"
         # mode: 01777
-        recurse: false
+        recurse: true
 
     - name: Clone hardening repo
-      become: true
-      become_user: "{{ local_user }}"
       ansible.builtin.git:
         repo: https://github.com/pythoninthegrass/hardening.git
         dest: "{{ lookup('env', 'HOME') }}/git/hardening"
@@ -44,8 +40,6 @@
         version: master
 
     - name: Clone ansible hardening repo
-      become: true
-      become_user: "{{ local_user }}"
       ansible.builtin.git:
         repo: https://github.com/pythoninthegrass/ansible-role-hardening.git
         dest: /etc/ansible/roles/hardening
@@ -55,12 +49,10 @@
         version: master
 
     - name: Take ownership of hardening repo
-      become: true
-      become_user: "{{ local_user }}"
       ansible.builtin.file:
         path: /etc/ansible/roles/hardening
         state: directory
         owner: "{{ local_user }}"
         group: "{{ local_user }}"
         # mode: 01777
-        recurse: false
+        recurse: true

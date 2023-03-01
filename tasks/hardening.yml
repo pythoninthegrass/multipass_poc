@@ -4,7 +4,7 @@
 - hosts: localhost
   connection: local
   become: true
-  gather_facts: False
+  gather_facts: false
   any_errors_fatal: true
   vars:
     os_environment:
@@ -22,21 +22,19 @@
         state: present
 
     - name: Checkout hardening repo
-      become_user: "{{ local_user }}"
       ansible.builtin.git:
         repo: 'https://github.com/pythoninthegrass/ansible-role-hardening'
         dest: /etc/ansible/roles/hardening
         version: master
 
     - name: Take ownership of hardening repo
-      become_user: "{{ local_user }}"
       ansible.builtin.file:
         path: /etc/ansible/roles/hardening
         state: directory
         owner: "{{ local_user }}"
         group: "{{ local_user }}"
         # mode: 01777
-        recurse: false
+        recurse: true
 
     - name: Include the hardening role
       ansible.builtin.include_role:
