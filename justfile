@@ -128,5 +128,5 @@ ansible: start
 	#!/usr/bin/env bash
 	# set -euxo pipefail
 	multipass exec {{VM}} -- \
-	cd /home/ubuntu/git/ansible-role-hardening \
+	cd /home/ubuntu/git/ansible-role-hardening/tasks \
 	&& ansible-playbook hardening.yml -i /etc/ansible/hosts
