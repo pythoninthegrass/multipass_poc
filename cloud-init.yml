@@ -152,6 +152,8 @@ write_files:
         name = pythoninthegrass
       [pull]
         rebase = true
+      [safe]
+        directory = /etc/ansible/roles/hardening
 
   - path: /etc/ansible/hosts
     owner: ansible:ansible

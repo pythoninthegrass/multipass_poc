@@ -4,25 +4,40 @@
 - hosts: localhost
   connection: local
   become: true
+  gather_facts: False
+  any_errors_fatal: true
   vars:
     os_environment:
       - key: EDITOR
         value: vi
   tasks:
+    - name: Get running ansible user
+      ansible.builtin.set_fact:
+        local_user: "{{ lookup('env', 'USER') }}"
+      delegate_to: localhost
+
     - name: Install git
       ansible.builtin.package:
         name: git
         state: present
 
     - name: Checkout hardening repo
-      become: true
-      become_user: ubuntu
+      become_user: "{{ local_user }}"
       ansible.builtin.git:
         repo: 'https://github.com/pythoninthegrass/ansible-role-hardening'
         dest: /etc/ansible/roles/hardening
         version: master
 
-    # TODO: debug '/etc/ansible/roles/konstruktoid.hardening' and/or clone to same dir to override
+    - name: Take ownership of hardening repo
+      become_user: "{{ local_user }}"
+      ansible.builtin.file:
+        path: /etc/ansible/roles/hardening
+        state: directory
+        owner: "{{ local_user }}"
+        group: "{{ local_user }}"
+        # mode: 01777
+        recurse: false
+
     - name: Include the hardening role
       ansible.builtin.include_role:
         name: hardening
@@ -34,7 +49,7 @@
         disable_ipv6: false
         dns: 127.0.0.1 1.1.1.1
         fallback_dns: 9.9.9.9 1.0.0.1
-        resolv_conf: false
+        # resolv_conf: false
         install_aide: false
         reboot_ubuntu: false
         fs_modules_blocklist:
