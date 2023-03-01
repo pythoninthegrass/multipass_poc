@@ -20,7 +20,6 @@
         dest: /home/ubuntu/git/hardening
         clone: yes
         update: yes
-        single_branch: yes
         version: master
 
     - name: Include the hardening role
