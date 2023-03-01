@@ -1,3 +1,5 @@
+# code: language=ansible
+
 ---
 # Deletes any existing Multipass VM with the supplied name, then creates
 # a new VM with the supplied name is created with the supplied parameters.

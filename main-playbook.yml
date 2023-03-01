@@ -1,3 +1,5 @@
+# code: language=ansible
+
 ---
 - name: Create Multipass VMs for a K3S cluster
   hosts: localhost

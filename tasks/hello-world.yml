@@ -1,3 +1,5 @@
+# code: language=ansible
+
 ---
 - name: Sanity check
   hosts: localhost

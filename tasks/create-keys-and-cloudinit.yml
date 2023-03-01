@@ -1,3 +1,5 @@
+# code: language=ansible
+
 ---
 # Creates vmadmin keypair that will be used to log into the Multipass VMs
 # and the cloud-init file use when create the VMs.
