@@ -94,6 +94,9 @@ write_files:
       HISTSIZE=1000
       HISTFILESIZE=2000
 
+      # Forward search in bash (step forward via ctrl-s)
+      stty -ixon
+
       shopt -s checkwinsize
 
       if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
