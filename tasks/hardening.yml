@@ -4,7 +4,7 @@
 - hosts: localhost
   connection: local
   become: true
-  gather_facts: false
+  gather_facts: true
   any_errors_fatal: true
   vars:
     os_environment:
