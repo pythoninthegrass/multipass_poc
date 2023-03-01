@@ -3,7 +3,6 @@
 ---
 - hosts: localhost
   connection: local
-  become: true
   vars:
     os_environment:
       - key: EDITOR
@@ -21,15 +20,15 @@
         state: directory
         owner: ubuntu
         group: ubuntu
-        mode: 0777
+        mode: 01777
 
     - name: Clone ansible hardening repo
       become_user: ubuntu
       ansible.builtin.git:
         repo: https://github.com/pythoninthegrass/ansible-role-hardening.git
         dest: /home/ubuntu/git/ansible-role-hardening
-        clone: yes
-        update: yes
+        clone: true
+        update: true
         version: master
 
     - name: Clone hardening repo
@@ -37,6 +36,6 @@
       ansible.builtin.git:
         repo: https://github.com/pythoninthegrass/hardening.git
         dest: /home/ubuntu/git/hardening
-        clone: yes
-        update: yes
+        clone: true
+        update: true
         version: master
