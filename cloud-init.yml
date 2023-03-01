@@ -1,13 +1,12 @@
 #cloud-config
 # vim: syntax=yaml
 
-# store logs inside vm
-output: {all: '| tee -a /var/log/cloud-init.log'}
+output: {all: '| tee -a /var/log/cloud-init.log'}   # store logs inside vm
 
 timezone: "America/Chicago"
 
-package_update: true              # default: true
-package_upgrade: true             # default: false
+package_update: true                                # default: true
+package_upgrade: true                               # default: false
 # https://github.com/number5/cloud-init/blob/main/doc/examples/cloud-config-apt.txt#L21
 apt_get_command: ["apt-get", "--option=Dpkg::Options::=--force-confold", "--option=Dpkg::options::=--force-unsafe-io", "--assume-yes", "--quiet", "--no-install-recommends"]
 
@@ -63,10 +62,7 @@ runcmd:
   - runuser -l ubuntu -c "mkdir -p /home/ubuntu/git"
   - runuser -l ubuntu -c "sudo chmod -R 0777 /home/ubuntu/git"
   - runuser -l ubuntu -c "sudo chown -R ubuntu:ubuntu /home/ubuntu/git"
-  # TODO: remove ansible from here (QA)
-  # - sudo python3 -m pip install ansible
   # * smoke test
-  # - ansible-galaxy collection install community.general
   # - ansible all -m ping -i /etc/ansible/hosts
 
 ssh:
@@ -216,7 +212,7 @@ ansible:
       - path: /home/ubuntu/git/multipass_poc
         source: "https://github.com/pythoninthegrass/multipass_poc.git"
     run_ansible:
-      - playbook_dir: /home/ubuntu/git/multipass_poc
+      - playbook_dir: /home/ubuntu/git/multipass_poc/tasks
         playbook_name: git.yml
       # - playbook_dir: /home/ansible/git/multipass_poc
       #   playbook_name: hardening.yml
