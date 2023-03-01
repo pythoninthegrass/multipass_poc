@@ -14,6 +14,7 @@
         state: present
 
     - name: Setup directory for git repos
+      become: true
       become_user: ubuntu
       ansible.builtin.file:
         path: /home/ubuntu/git
@@ -23,15 +24,17 @@
         mode: 01777
 
     - name: Clone ansible hardening repo
+      become: true
       become_user: ubuntu
       ansible.builtin.git:
         repo: https://github.com/pythoninthegrass/ansible-role-hardening.git
-        dest: /home/ubuntu/git/ansible-role-hardening
+        dest: /etc/ansible/roles/hardening
         clone: true
         update: true
         version: master
 
     - name: Clone hardening repo
+      become: true
       become_user: ubuntu
       ansible.builtin.git:
         repo: https://github.com/pythoninthegrass/hardening.git

@@ -14,30 +14,18 @@
         name: git
         state: present
 
-    - name: Checkout konstruktoid.hardening
+    - name: Checkout hardening repo
       become: true
+      become_user: ubuntu
       ansible.builtin.git:
-<<<<<<< HEAD:hardening.yml
-        repo: https://github.com/pythoninthegrass/ansible-role-hardening.git
-        dest: /home/ubuntu/git/hardening
-        clone: yes
-        update: yes
-        single_branch: yes
-||||||| Merge remote-tracking branch 'origin/master'
-        repo: https://github.com/pythoninthegrass/ansible-role-hardening
-        dest: /home/ubuntu/git/hardening
-        clone: yes
-        update: yes
-        single_branch: yes
-=======
-        repo: 'https://github.com/konstruktoid/ansible-role-hardening'
-        dest: /etc/ansible/roles/konstruktoid.hardening
->>>>>>> master:tasks/hardening.yml
+        repo: 'https://github.com/pythoninthegrass/ansible-role-hardening'
+        dest: /etc/ansible/roles/hardening
         version: master
 
+    # TODO: debug '/etc/ansible/roles/konstruktoid.hardening' and/or clone to same dir to override
     - name: Include the hardening role
       ansible.builtin.include_role:
-        name: konstruktoid.hardening
+        name: hardening
       vars:
         auditd_apply_audit_rules: false
         block_blacklisted: true
@@ -46,6 +34,7 @@
         disable_ipv6: false
         dns: 127.0.0.1 1.1.1.1
         fallback_dns: 9.9.9.9 1.0.0.1
+        resolv_conf: false
         install_aide: false
         reboot_ubuntu: false
         fs_modules_blocklist:
@@ -100,21 +89,18 @@
           - ypbind
         packages_ubuntu:
           - apt-transport-https
-          - bash-completion
           - bats
           - build-essential
           - ca-certificates
           - curl
-          - docker.io
-          - fwupd
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
           - gnupg-agent
           - net-tools
-          - procps
           - python3
           - python3-pip
-          - secureboot-db
           - software-properties-common
-          - ssh-import-id
           - tree
           - vim
         ufw_enable: true
