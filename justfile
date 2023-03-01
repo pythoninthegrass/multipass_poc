@@ -44,22 +44,24 @@ default:
 
 # [deps]     update dependencies
 update-deps args=CWD:
-    #!/usr/bin/env bash
-    # set -euxo pipefail
-    find . -maxdepth 3 -name "pyproject.toml" -exec \
-        echo "[{}]" \; -exec \
-        echo "Clearing pypi cache..." \; -exec \
-        poetry --directory {{args}} cache clear --all pypi --no-ansi \; -exec \
-        poetry --directory {{args}} update --lock --no-ansi \;
+	#!/usr/bin/env bash
+	# set -euxo pipefail
+	args=$(realpath {{args}})
+	find "${args}" -maxdepth 3 -name "pyproject.toml" -exec \
+		echo "[{}]" \; -exec \
+		echo "Clearing pypi cache..." \; -exec \
+		poetry --directory "${args}" cache clear --all pypi --no-ansi \; -exec \
+		poetry --directory "${args}" update --lock --no-ansi \;
 
 # [deps]     export requirements.txt
 export-reqs args=CWD: update-deps
-    #!/usr/bin/env bash
-    # set -euxo pipefail
-    find . -maxdepth 3 -name "pyproject.toml" -exec \
-        echo "[{}]" \; -exec \
-        echo "Exporting requirements.txt..." \; -exec \
-        poetry --directory {{args}} export --no-ansi --without-hashes --output requirements.txt \;
+	#!/usr/bin/env bash
+	# set -euxo pipefail
+	args=$(realpath {{args}})
+	find "${args}" -maxdepth 3 -name "pyproject.toml" -exec \
+		echo "[{}]" \; -exec \
+		echo "Exporting requirements.txt..." \; -exec \
+		poetry --directory "${args}" export --no-ansi --without-hashes --output requirements.txt \;
 
 # [git]      update pre-commit hooks
 pre-commit:
