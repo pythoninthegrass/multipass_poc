@@ -3,16 +3,20 @@
 # load .env
 set dotenv-load
 
+# positional params
+set positional-arguments
+
 # # set env var
-export APP		:= "cloud-conf"
-export CONF		:= "cloud-init.yml"
-export CPU		:= "4"
-export DISK		:= "5G"
-export DRIVER   := "qemu"
-export ENTRY	:= "cloud-init.yml"
-export MEM		:= "4G"
-export PLAY     := "hardening.yml"
-export VM		:= "testvm"
+export APP		:= `echo ${APP_NAME:-"cloud-conf"}`
+export CONF		:= `echo ${CONF:-"cloud-init.yml"}`
+export CWD      := `echo ${CWD:-"$(pwd)"}`
+export CPU		:= `echo ${CPU:-"4"}`
+export DISK		:= `echo ${DISK:-"5G"}`
+export DRIVER   := `echo ${DRIVER:-"qemu"}`
+export ENTRY	:= `echo ${ENTRY:-"cloud-init.yml"}`
+export MEM		:= `echo ${MEM:-"4G"}`
+export PLAY     := `echo ${PLAY:-"hardening.yml"}`
+export VM		:= `echo ${VM:-"testvm"}`
 
 # x86_64/arm64
 arch := `uname -m`
@@ -39,23 +43,23 @@ default:
 	just --list
 
 # [deps]     update dependencies
-update-deps:
-	#!/usr/bin/env bash
-	# set -euxo pipefail
-	find . -maxdepth 3 -name "pyproject.toml" -exec \
-		echo "[{}]" \; -exec \
-		echo "Clearring pypi cache..." \; -exec \
-		poetry cache clear --all pypi --no-ansi \; -exec \
-		poetry update --lock --no-ansi \;
+update-deps args=CWD:
+    #!/usr/bin/env bash
+    # set -euxo pipefail
+    find . -maxdepth 3 -name "pyproject.toml" -exec \
+        echo "[{}]" \; -exec \
+        echo "Clearing pypi cache..." \; -exec \
+        poetry --directory {{args}} cache clear --all pypi --no-ansi \; -exec \
+        poetry --directory {{args}} update --lock --no-ansi \;
 
 # [deps]     export requirements.txt
-export-reqs: update-deps
-	#!/usr/bin/env bash
-	# set -euxo pipefail
-	find . -maxdepth 3 -name "pyproject.toml" -exec \
-		echo "[{}]" \; -exec \
-		echo "Exporting requirements.txt..." \; -exec \
-		poetry export --no-ansi --without-hashes --output requirements.txt \;
+export-reqs args=CWD: update-deps
+    #!/usr/bin/env bash
+    # set -euxo pipefail
+    find . -maxdepth 3 -name "pyproject.toml" -exec \
+        echo "[{}]" \; -exec \
+        echo "Exporting requirements.txt..." \; -exec \
+        poetry --directory {{args}} export --no-ansi --without-hashes --output requirements.txt \;
 
 # [git]      update pre-commit hooks
 pre-commit:
