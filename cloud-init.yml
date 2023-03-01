@@ -128,7 +128,7 @@ write_files:
     content: |
       [[ -s ~/.bashrc ]] && source ~/.bashrc
 
-  - path: /home/ubuntu/git/.gitignore
+  - path: /home/ubuntu/.gitignore
     owner: ubuntu:ubuntu
     defer: true
     content: |
@@ -146,7 +146,7 @@ write_files:
     defer: true
     content: |
       [core]
-        excludesfile = /home/ubuntu/git/.gitignore
+        excludesfile = /home/ubuntu/.gitignore
       [user]
         email = 4097471+pythoninthegrass@users.noreply.github.com
         name = pythoninthegrass
