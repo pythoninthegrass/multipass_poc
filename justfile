@@ -8,6 +8,7 @@ export APP		:= "cloud-conf"
 export CONF		:= "cloud-init.yml"
 export CPU		:= "4"
 export DISK		:= "5G"
+export DRIVER   := "qemu"
 export ENTRY	:= "cloud-init.yml"
 export MEM		:= "4G"
 export PLAY     := "hardening.yml"
@@ -56,9 +57,28 @@ export-reqs: update-deps
 		echo "Exporting requirements.txt..." \; -exec \
 		poetry export --no-ansi --without-hashes --output requirements.txt \;
 
+# [git]      update pre-commit hooks
+pre-commit:
+    @echo "To install pre-commit hooks:"
+    @echo "pre-commit install -f"
+    @echo "Updating pre-commit hooks..."
+    pre-commit autoupdate
+
 # [multi]    list multipass instances
 list:
 	multipass list
+
+# [multi]    multipass instance info
+info:
+    multipass info --format yaml {{VM}}
+
+# TODO: QA
+# [multi]    multipass vm driver
+driver:
+    # multipass set local.passphrase
+    # multipass authenticate
+    multipass set local.driver={{DRIVER}}
+    multipass get local.driver
 
 # [multi]    launch multipass instance
 launch:
@@ -115,5 +135,5 @@ ansible: start
 	#!/usr/bin/env bash
 	# set -euxo pipefail
 	multipass exec {{VM}} -- \
-	cd /home/ubuntu/git/ansible-role-hardening \
+	cd /home/ubuntu/git/ansible-role-hardening/tasks \
 	&& ansible-playbook hardening.yml -i /etc/ansible/hosts

@@ -1,0 +1,41 @@
+# code: language=ansible
+
+---
+- hosts: localhost
+  connection: local
+  vars:
+    os_environment:
+      - key: EDITOR
+        value: vi
+  tasks:
+    - name: Install git
+      ansible.builtin.package:
+        name: git
+        state: present
+
+    - name: Setup directory for git repos
+      become_user: ubuntu
+      ansible.builtin.file:
+        path: /home/ubuntu/git
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+        mode: 01777
+
+    - name: Clone ansible hardening repo
+      become_user: ubuntu
+      ansible.builtin.git:
+        repo: https://github.com/pythoninthegrass/ansible-role-hardening.git
+        dest: /home/ubuntu/git/ansible-role-hardening
+        clone: true
+        update: true
+        version: master
+
+    - name: Clone hardening repo
+      become_user: ubuntu
+      ansible.builtin.git:
+        repo: https://github.com/pythoninthegrass/hardening.git
+        dest: /home/ubuntu/git/hardening
+        clone: true
+        update: true
+        version: master
