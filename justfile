@@ -57,6 +57,13 @@ export-reqs: update-deps
 		echo "Exporting requirements.txt..." \; -exec \
 		poetry export --no-ansi --without-hashes --output requirements.txt \;
 
+# [git]      update pre-commit hooks
+pre-commit:
+    @echo "To install pre-commit hooks:"
+    @echo "pre-commit install -f"
+    @echo "Updating pre-commit hooks..."
+    pre-commit autoupdate
+
 # [multi]    list multipass instances
 list:
 	multipass list
