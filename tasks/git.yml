@@ -10,17 +10,16 @@
     os_environment:
       - key: EDITOR
         value: vi
-  tasks:
+  pre_tasks:
     - name: Get running ansible user
       ansible.builtin.set_fact:
         local_user: "{{ lookup('env', 'USER') }}"
       delegate_to: localhost
-
     - name: Install git
       ansible.builtin.package:
         name: git
         state: present
-
+  tasks:
     - name: Setup directory for git repos
       ansible.builtin.file:
         path: "{{ lookup('env', 'HOME') }}/git"

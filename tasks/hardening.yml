@@ -6,21 +6,21 @@
   become: true
   gather_facts: true
   any_errors_fatal: true
+  strategy: debug
   vars:
     os_environment:
       - key: EDITOR
         value: vi
-  tasks:
+  pre_tasks:
     - name: Get running ansible user
       ansible.builtin.set_fact:
         local_user: "{{ lookup('env', 'USER') }}"
       delegate_to: localhost
-
     - name: Install git
       ansible.builtin.package:
         name: git
         state: present
-
+  tasks:
     - name: Checkout hardening repo
       ansible.builtin.git:
         repo: 'https://github.com/pythoninthegrass/ansible-role-hardening'
@@ -40,6 +40,10 @@
       ansible.builtin.include_role:
         name: hardening
       vars:
+        # * custom vars
+        # resolv_conf: false
+        ssh_conf: false
+        # * built-in vars
         auditd_apply_audit_rules: false
         block_blacklisted: true
         cron: true
@@ -116,7 +120,7 @@
           - software-properties-common
           - tree
           - vim
-        ufw_enable: true
+        ufw_enable: false
         ufw_outgoing_traffic:
           - 22
           - 53
