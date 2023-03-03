@@ -5,6 +5,8 @@ output: {all: '| tee -a /var/log/cloud-init.log'}   # store logs inside vm
 
 timezone: "America/Chicago"
 
+hostname: ubuntu
+
 package_update: true                                # default: true
 package_upgrade: true                               # default: false
 # https://github.com/number5/cloud-init/blob/main/doc/examples/cloud-config-apt.txt#L21
