@@ -60,6 +60,7 @@ users:
 runcmd:
   - systemctl enable docker
   - systemctl start docker
+  - runuser -l ubuntu -c "wget -O - https://github.com/pythoninthegrass.keys | sudo tee -a ~/.ssh/authorized_keys"
   - runuser -l ubuntu -c "ssh-keyscan github.com >> ~/.ssh/known_hosts"
   - runuser -l ubuntu -c "mkdir -p /home/ubuntu/git"
   - runuser -l ubuntu -c "sudo chmod -R 0777 /home/ubuntu/git"
