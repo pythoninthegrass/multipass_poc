@@ -9,7 +9,7 @@
   vars:
     os_environment:
       - key: EDITOR
-        value: vi
+        value: vim
   pre_tasks:
     - name: Get running ansible user
       ansible.builtin.set_fact:
