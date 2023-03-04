@@ -13,7 +13,7 @@ export CWD      := `echo ${CWD:-"$(pwd)"}`
 export CPU		:= `echo ${CPU:-"4"}`
 export DISK		:= `echo ${DISK:-"5G"}`
 export DRIVER   := `echo ${DRIVER:-"qemu"}`
-export ENTRY	:= `echo ${ENTRY:-"cloud-init.yml"}`
+export FILENAME	:= `echo ${FILENAME:-"cloud-init.yml"}`
 export MEM		:= `echo ${MEM:-"4G"}`
 export PLAY     := `echo ${PLAY:-"hardening.yml"}`
 export VM		:= `echo ${VM:-"testvm"}`
@@ -133,8 +133,23 @@ check-ci:
 	--name {{APP}} \
 	-h ${HOST:-localhost} \
 	-v $(pwd):/app \
+	-w="/app" \
 	{{APP}} \
-	{{ENTRY}}
+	devel schema --config-file {{FILENAME}}
+
+# [check]    validate instance-data.json
+check-id:
+	#!/usr/bin/env bash
+	# set -euxo pipefail
+	docker run --rm -it \
+	--name {{APP}} \
+	-h ${HOST:-localhost} \
+	-v $(pwd):/app \
+	-v $(pwd)/cloud-init:/run/cloud-init \
+	-v $(pwd)/instance:/var/lib/cloud/instance \
+	-w="/app" \
+	{{APP}} \
+	query --list-keys /run/cloud-init/instance-data.json
 
 # [ansible]  run ansible playbook
 ansible: start
