@@ -1,0 +1,52 @@
+# code: language=ansible
+
+---
+- hosts: localhost
+  connection: local
+  become: true
+  gather_facts: true
+  any_errors_fatal: true
+  vars:
+    os_environment:
+      - key: EDITOR
+        value: vim
+  pre_tasks:
+    - name: Get running ansible user
+      ansible.builtin.set_fact:
+        local_user: "{{ lookup('env', 'USER') }}"
+      delegate_to: localhost
+    - name: Install git
+      ansible.builtin.package:
+        name: git
+        state: present
+  tasks:
+    - name: Setup directory for git repos
+      ansible.builtin.file:
+        path: "{{ lookup('env', 'HOME') }}/git"
+        state: directory
+        owner: "{{ local_user }}"
+        group: "{{ local_user }}"
+        # mode: 01777
+        recurse: true
+
+    - name: Install dependencies
+      ansible.builtin.package:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - apt-transport-https
+        - bats
+        - build-essential
+        - ca-certificates
+        - cloud-init
+        - curl
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io
+        - gnupg-agent
+        - net-tools
+        - python3
+        - python3-pip
+        - software-properties-common
+        - tree
+        - vim
