@@ -27,6 +27,7 @@ packages:
   - bats
   - build-essential
   - ca-certificates
+  - cloud-init
   - curl
   - docker-ce
   - docker-ce-cli
