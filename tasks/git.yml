@@ -30,6 +30,7 @@
         recurse: true
 
     - name: Clone hardening repo
+      become: false
       ansible.builtin.git:
         repo: https://github.com/pythoninthegrass/hardening.git
         dest: "{{ lookup('env', 'HOME') }}/git/hardening"
