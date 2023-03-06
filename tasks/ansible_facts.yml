@@ -1,0 +1,6 @@
+---
+- name: Testing fact cache
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - debug: var=ansible_facts

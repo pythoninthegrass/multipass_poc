@@ -3,7 +3,7 @@
 ---
 - hosts: localhost
   become: true
-  gather_facts: true
+  gather_facts: false
   debugger: on_failed
   any_errors_fatal: true
   vars:
@@ -14,11 +14,24 @@
     - name: Get running ansible user
       ansible.builtin.set_fact:
         local_user: "{{ lookup('env', 'USER') }}"
+        cacheable: true
       delegate_to: localhost
     - name: Install git
       ansible.builtin.package:
         name: git
         state: present
+    - name: Install redis and python3-redis
+      ansible.builtin.package:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - redis
+        - python3-redis
+    - name: Enable redis
+      ansible.builtin.service:
+        name: redis
+        enabled: true
+        state: started
     - name: Get OS release
       ansible.builtin.set_fact:
         os_release: "{{ ansible_distribution }}-{{ ansible_distribution_major_version }}"
