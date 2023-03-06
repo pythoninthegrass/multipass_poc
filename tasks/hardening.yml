@@ -2,11 +2,10 @@
 
 ---
 - hosts: localhost
-  connection: local
   become: true
   gather_facts: true
+  debugger: on_failed
   any_errors_fatal: true
-  strategy: debug
   vars:
     os_environment:
       - key: EDITOR
