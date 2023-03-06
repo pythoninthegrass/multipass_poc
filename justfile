@@ -126,7 +126,7 @@ build:
 	fi
 
 # [check]    validate cloud-init.yaml
-check-ci:
+check-ci args=FILENAME:
 	#!/usr/bin/env bash
 	# set -euxo pipefail
 	docker run --rm -it \
@@ -135,10 +135,10 @@ check-ci:
 	-v $(pwd):/app \
 	-w="/app" \
 	{{APP}} \
-	devel schema --config-file {{FILENAME}}
+	devel schema --config-file {{args}}
 
 # [check]    validate instance-data.json
-check-id:
+check-id args='/run/cloud-init/instance-data.json':
 	#!/usr/bin/env bash
 	# set -euxo pipefail
 	docker run --rm -it \
@@ -149,7 +149,7 @@ check-id:
 	-v $(pwd)/instance:/var/lib/cloud/instance \
 	-w="/app" \
 	{{APP}} \
-	query --list-keys /run/cloud-init/instance-data.json
+	query --list-keys {{args}}
 
 # [ansible]  run ansible playbook
 ansible: start
