@@ -1,6 +1,8 @@
 ---
 - name: Testing fact cache
   hosts: localhost
-  gather_facts: false
+  gather_facts: true
   tasks:
-    - debug: var=ansible_facts
+    - name: Debug
+      debug:
+        msg: "{{ ansible_dns.nameservers }}"

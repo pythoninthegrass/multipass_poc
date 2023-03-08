@@ -2,6 +2,9 @@
 *.bak
 user_key
 user_key.pub
+ansible.cfg
+redis.conf
+keys.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
