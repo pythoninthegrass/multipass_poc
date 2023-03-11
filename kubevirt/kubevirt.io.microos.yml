@@ -1,0 +1,71 @@
+type: kubevirt.io.virtualmachine
+metadata:
+  name: microos
+  namespace: default
+  annotations:
+    harvesterhci.io/volumeClaimTemplates: '[{"metadata":{"name":"microos-disk-0-dejou","annotations":{"harvesterhci.io/imageId":"default/image-p2w78"}},"spec":{"accessModes":["ReadWriteMany"],"resources":{"requests":{"storage":"10Gi"}},"volumeMode":"Block","storageClassName":"longhorn-image-p2w78"}},{"metadata":{"name":"microos-disk-1-3toii"},"spec":{"accessModes":["ReadWriteMany"],"resources":{"requests":{"storage":"30Gi"}},"volumeMode":"Block","storageClassName":"harvester-longhorn"}}]'
+    network.harvesterhci.io/ips: '[]'
+  labels:
+    harvesterhci.io/creator: harvester
+    harvesterhci.io/os: openSUSE
+  name: microos
+spec:
+  runStrategy: RerunOnFailure
+  template:
+    metadata:
+      annotations:
+        harvesterhci.io/sshNames: '["default/mbp"]'
+      labels:
+        harvesterhci.io/vmName: microos
+    spec:
+      domain:
+        machine:
+          type: ''
+        cpu:
+          cores: 4
+          sockets: 1
+          threads: 1
+        memory:
+          guest: 8Gi
+        devices:
+          inputs:
+            - bus: usb
+              name: tablet
+              type: tablet
+          interfaces:
+            - bridge: {}
+              model: virtio
+              name: default
+          disks:
+            - name: disk-0
+              disk:
+                bus: sata
+              bootOrder: 1
+            - name: cloudinitdisk
+              disk:
+                bus: virtio
+          hostDevices: []
+        resources:
+          limits:
+            memory: null
+            cpu: null
+        features:
+          acpi:
+            enabled: true
+      evictionStrategy: LiveMigrate
+      hostname: microos
+      networks:
+        - name: default
+          multus:
+            networkName: default/wonderland
+      volumes:
+        - name: disk-0
+          persistentVolumeClaim:
+            claimName: microos-disk-0-wxxs4
+        - name: cloudinitdisk
+          cloudInitNoCloud:
+            secretRef:
+              name: microos-8orih
+            networkDataSecretRef:
+              name: microos-8orih
+      accessCredentials: []

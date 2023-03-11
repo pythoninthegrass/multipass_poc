@@ -1,0 +1,78 @@
+type: kubevirt.io.virtualmachine
+metadata:
+  name: fedora-37
+  namespace: default
+  annotations:
+    harvesterhci.io/volumeClaimTemplates: >-
+      [{"metadata":{"name":"fedora-37-disk-0-msblw","annotations":{"harvesterhci.io/imageId":"default/image-rrvhw"}},"spec":{"accessModes":["ReadWriteMany"],"resources":{"requests":{"storage":"10Gi"}},"volumeMode":"Block","storageClassName":"longhorn-image-rrvhw"}},{"metadata":{"name":"fedora-37-disk-1-hg6ph"},"spec":{"accessModes":["ReadWriteMany"],"resources":{"requests":{"storage":"10Gi"}},"volumeMode":"Block","storageClassName":"harvester-longhorn"}}]
+    network.harvesterhci.io/ips: '[]'
+  labels:
+    harvesterhci.io/creator: harvester
+    harvesterhci.io/os: linux
+__clone: true
+spec:
+  runStrategy: RerunOnFailure
+  template:
+    metadata:
+      annotations:
+        harvesterhci.io/sshNames: '["default/mbp"]'
+      labels:
+        harvesterhci.io/vmName: fedora-37
+    spec:
+      domain:
+        machine:
+          type: ''
+        cpu:
+          cores: 4
+          sockets: 1
+          threads: 1
+        memory:
+          guest: 8Gi
+        devices:
+          inputs:
+            - bus: usb
+              name: tablet
+              type: tablet
+          interfaces:
+            - bridge: {}
+              model: virtio
+              name: default
+          disks:
+            - name: disk-0
+              cdrom:
+                bus: sata
+              bootOrder: 1
+            - name: disk-1
+              disk:
+                bus: virtio
+              bootOrder: 2
+            - name: cloudinitdisk
+              disk:
+                bus: virtio
+          hostDevices: []
+        resources:
+          limits:
+            memory: null
+            cpu: null
+        features:
+          acpi:
+            enabled: true
+      evictionStrategy: LiveMigrate
+      hostname: fedora-37
+      networks:
+        - name: default
+          multus:
+            networkName: default/wonderland
+      volumes:
+        - name: disk-0
+          persistentVolumeClaim:
+            claimName: fedora-37-disk-0-msblw
+        - name: disk-1
+          persistentVolumeClaim:
+            claimName: fedora-37-disk-1-hg6ph
+        - name: cloudinitdisk
+          cloudInitNoCloud:
+            secretRef:
+              name: fedora-37-bwmjn
+            networkDataSecretRef:
+              name: fedora-37-bwmjn

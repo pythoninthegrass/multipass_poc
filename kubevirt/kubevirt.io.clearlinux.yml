@@ -1,0 +1,76 @@
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: clear-linux
+  namespace: default
+  annotations:
+    harvesterhci.io/volumeClaimTemplates: '[{"metadata":{"name":"clear-linux-disk-0-cogic","annotations":{"harvesterhci.io/imageId":"default/image-8rz78"}},"spec":{"accessModes":["ReadWriteMany"],"resources":{"requests":{"storage":"10Gi"}},"volumeMode":"Block","storageClassName":"longhorn-image-8rz78"}},{"metadata":{"name":"clear-linux-disk-1-ytbh6"},"spec":{"accessModes":["ReadWriteMany"],"resources":{"requests":{"storage":"10Gi"}},"volumeMode":"Block","storageClassName":"harvester-longhorn"}}]'
+    network.harvesterhci.io/ips: '[]'
+  labels:
+    harvesterhci.io/creator: harvester
+    harvesterhci.io/os: linux
+__clone: true
+spec:
+  runStrategy: RerunOnFailure
+  template:
+    metadata:
+      annotations:
+        harvesterhci.io/sshNames: '["default/mbp"]'
+      labels:
+        harvesterhci.io/vmName: clear-linux
+    spec:
+      domain:
+        cpu:
+          cores: 4
+          sockets: 1
+          threads: 1
+        memory:
+          guest: 7629Mi
+        devices:
+          disks:
+          - bootOrder: 2
+            cdrom:
+              bus: sata
+            name: disk-0
+          - bootOrder: 1
+            disk:
+              bus: virtio
+            name: disk-1
+          - disk:
+              bus: virtio
+            name: cloudinitdisk
+          inputs:
+          - bus: usb
+            name: tablet
+            type: tablet
+          interfaces:
+          - bridge: {}
+            macAddress: ca:28:27:1c:bf:8d
+            model: virtio
+            name: default
+        features:
+          acpi:
+            enabled: true
+        machine:
+          type: q35
+
+        resources: {}
+      evictionStrategy: LiveMigrate
+      hostname: clear-linux
+      networks:
+      - multus:
+          networkName: default/wonderland
+        name: default
+      volumes:
+      - name: disk-0
+        persistentVolumeClaim:
+          claimName: clear-linux-disk-0-cogic
+      - name: disk-1
+        persistentVolumeClaim:
+          claimName: clear-linux-disk-1-ytbh6
+      - cloudInitNoCloud:
+          networkDataSecretRef:
+            name: clear-linux-l3uzq
+          secretRef:
+            name: clear-linux-l3uzq
+        name: cloudinitdisk
