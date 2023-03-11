@@ -1,0 +1,35 @@
+# code: language=ansible
+
+---
+- hosts: localhost
+  become: true
+  gather_facts: true
+  debugger: on_failed
+  any_errors_fatal: true
+  vars:
+    os_environment:
+      - key: EDITOR
+        value: vim
+  tasks:
+    - name: Create user
+      ansible.builtin.user:
+        name: "{{ item }}"
+        groups: admin, netdev, users, sudo, wheel
+        state: present
+        shell: /bin/bash
+        create_home: true
+      loop:
+        - "{{ lookup('file', 'authorized_keys/keys.json') | from_json | json_query('user') }}"
+    - name: Validate the sudoers file before saving
+      ansible.builtin.lineinfile:
+        path: /etc/sudoers
+        state: present
+        regexp: '^%sudo ALL='
+        line: '%sudo ALL=(ALL) NOPASSWD: ALL'
+        validate: /usr/sbin/visudo -cf %s
+    - name: Add user public ssh key
+      ansible.builtin.authorized_key:
+        user: "{{ item.user }}"
+        key: "{{ item.key }}"
+        state: present
+      loop: "{{ lookup('file', 'authorized_keys/keys.json') | from_json }}"
