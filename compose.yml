@@ -4,6 +4,9 @@ services:
   cache:
     container_name: redis_cache
     image: redis:7.0.9-bullseye
+    # build:
+    #   context: ./
+    #   dockerfile: ./Dockerfile.redis
     tty: true
     stdin_open: true
     # env_file:
@@ -16,9 +19,6 @@ services:
       - /tmp/redis_cache:/data
     ports:
       - 6379:6379/tcp
-    build:
-      context: ./
-      dockerfile: ./Dockerfile.redis
     command: /usr/local/bin/redis-server --save 20 1 --loglevel warning --requirepass ${REDIS_PASS}
     # command: /bin/bash
 
