@@ -7,8 +7,8 @@ timezone: "America/Chicago"
 
 hostname: ubuntu
 
-package_update: true                                # default: true
-package_upgrade: true                               # default: false
+package_update: true      # default: true
+package_upgrade: false    # default: false  # TODO: set to true
 # https://github.com/number5/cloud-init/blob/main/doc/examples/cloud-config-apt.txt#L21
 apt_get_command: ["apt-get", "--option=Dpkg::Options::=--force-confold", "--option=Dpkg::options::=--force-unsafe-io", "--assume-yes", "--quiet", "--no-install-recommends"]
 
@@ -36,6 +36,8 @@ packages:
   - net-tools
   - python3
   - python3-pip
+  - redis
+  - redis-server
   - software-properties-common
   - tree
   - vim
@@ -49,23 +51,25 @@ system_info:
 
 users:
   - name: ansible
-    plain_text_passwd: 'ansible'
     sudo: [ALL=(ALL) NOPASSWD:ALL]
     gecos: Ansible
     home: /home/ansible
-    groups: [admin, netdev, users, sudo, wheel]
+    groups: [admin, users, wheel]
     lock_passwd: true
     shell: /bin/bash
     no_ssh_fingerprints: true
 
 runcmd:
-  - systemctl enable docker
-  - systemctl start docker
+  - systemctl enable --now docker
+  - systemctl enable --now redis-server
   - runuser -l ubuntu -c "wget -O - https://github.com/pythoninthegrass.keys | sudo tee -a ~/.ssh/authorized_keys"
   - runuser -l ubuntu -c "ssh-keyscan github.com >> ~/.ssh/known_hosts"
-  - runuser -l ubuntu -c "mkdir -p /home/ubuntu/git"
   - runuser -l ubuntu -c "sudo chmod -R 0777 /home/ubuntu/git"
+  - runuser -l ubuntu -c "mkdir -p /home/ubuntu/git"
   - runuser -l ubuntu -c "sudo chown -R ubuntu:ubuntu /home/ubuntu/git"
+  - runuser -l ansible -c "sudo touch /var/log/ansible.log"
+  - runuser -l ansible -c "sudo chown ansible:ansible /var/log/ansible.log"
+  - runuser -l ansible -c "sudo chmod 0777 /var/log/ansible.log"
   # * smoke test
   # - ansible all -m ping -i /etc/ansible/hosts
 
@@ -172,6 +176,21 @@ write_files:
       ansible_become_method=sudo
       ansible_python_interpreter=/usr/bin/python3
 
+  - path: /etc/ansible/ansible.cfg
+    owner: ansible:ansible
+    defer: true
+    content: |
+      [defaults]
+      log_path                = /var/log/ansible.log
+      host_key_checking       = False
+      retry_files_enabled      = False
+      remote_tmp              = /tmp/${USER}/ansible
+      gathering               = smart
+      fact_caching            = redis
+      fact_caching_prefix      = ansible_facts_
+      fact_caching_timeout    = 60
+      fact_caching_connection = localhost:6379:0
+
   - path: /etc/netplan/50-cloud-init.yaml
     owner: root:root
     permissions: '0644'
@@ -180,11 +199,11 @@ write_files:
       network:
         version: 2
         ethernets:
-          enp0s2:
+          ens3:
             dhcp4: true
             match:
-              macaddress: 0a:74:61:3b:44:00
-            set-name: enp0s2
+              name: en*s3
+            set-name: ens3
             nameservers:
               addresses: [1.1.1.1, 1.0.0.1]
 
@@ -211,25 +230,23 @@ write_files:
 
 # TODO: QA
 ansible:
+  ansible_config: |
+    [defaults]
+    log_path                = /var/log/ansible.log
+    fact_caching            = memory
   install_method: distro
   package_name: ansible
-  run_user: ansible
-  setup_controller:
-    galaxy:
-      actions:
-        - name: community.general
-          action: install
-    repositories:
-      - path: /home/ubuntu/git/multipass_poc
-        source: "https://github.com/pythoninthegrass/multipass_poc.git"
-    run_ansible:
-      - playbook_dir: /home/ubuntu/git/multipass_poc/tasks
-        playbook_name: git.yml
-      # - playbook_dir: /home/ansible/git/multipass_poc
-      #   playbook_name: hardening.yml
+  pull:
+    url: "https://github.com/pythoninthegrass/multipass_poc.git"
+    playbook_name: "tasks/git.yml"
+
+bootcmd:
+  - printf "[Resolve]\nDNS=1.1.1.1" > /etc/systemd/resolved.conf
+  - printf "\nDNS=1.0.0.1" >> /etc/systemd/resolved.conf
+  - systemctl restart systemd-resolved
+
+final_message: "The system is finally up, after $UPTIME seconds"
 
 # power_state:
 #   timeout: 300
 #   mode: reboot
-
-final_message: "The system is finally up, after $UPTIME seconds"
