@@ -1,0 +1,13 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: whale-say-job
+spec:
+  template:
+    spec:
+      containers:
+      # TODO: change cowsay to hello kitty
+      - name: whale-say-container
+        image: docker/whalesay
+        command: ["cowsay","Hello world!"]
+      restartPolicy: Never
