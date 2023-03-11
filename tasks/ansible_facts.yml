@@ -3,6 +3,11 @@
   hosts: localhost
   gather_facts: true
   tasks:
-    - name: Debug
-      debug:
-        msg: "{{ ansible_dns.nameservers }}"
+    - name: Print all available facts
+      ansible.builtin.debug:
+        var: ansible_facts
+    - name: Print subset of facts
+      # debug:
+      #   msg: "{{ ansible_dns.nameservers }}"
+      set_fact:
+        ansible_dns: "{{ ansible_dns.nameservers }}"
