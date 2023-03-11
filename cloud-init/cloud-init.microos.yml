@@ -1,0 +1,59 @@
+#cloud-config
+# vim: syntax=yaml
+
+output: {all: '| tee -a /var/log/cloud-init.log'}   # store logs inside vm
+
+timezone: "America/Chicago"
+
+hostname: microos
+
+datasource_list: [ NoCloud, None ]
+
+manage_resolv_conf: true
+resolv_conf:
+  nameservers: ['1.1.1.1', '1.0.0.1', '192.168.8.1']
+
+ssh:
+  emit_keys_to_console: false
+
+ssh_deletekeys: false
+ssh_pwauth: true
+chpasswd: { expire: false }
+ssh_authorized_keys:
+  - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDFnt3zU50NcdNvO37qPwqsXtD1lZ9Ka0bb8io5HO+8lE24ZnQ7GEWbf3VU3sKQqj6O0Itupz3n1NZoq0YOxW4TNwiAiYi4MBwBjoQ5ALkzoj/DthrsfoiQtd7MXsfIfDp4tp6ktxC3DtgON461L0r55KQVXdARc92R4iEsoCXnZtT2s7cDIZcbRIW13yiB3gBoazOsTH7vLHiPS61YkKd0Ih5zpc+xgHmLUe/iR7Qazy3nZ/OwTOlEh2nxzACHhFDKz38WiwfJtnoIlsmJaow3Cq56onRJeuOqbSGS9fETkumGXAVuJkkyCcjBbthvWGlfMsa1gAI9fmMphYAzfYq5ZrTur+Npy+ycunkkOJeFhkKqPA/GC9L3ogS4/k8JZTpVdLhqQmAoANiIXiKWMn1rleT5q+EgX/S4Q7n1szM8jLZRFH8tr0sKxVC+qUxTbylaJk7j4b3juS3iZQAERAwGGP3sG5wrFtvZjFABEINuGC/ijisGupca0p+7cEFb0ECLFZ5dMqguGuHnnF1YIBj/O0iTT18+uiJl3RrZ6v2EkKQIlKMy4A7fpeMnrbuHS9TcdtRPwBhRacyCUX2mhVz6hxqy9WZ2sU6uXzuXI8PHwWptk89/avWwLFzk0l1TrzFEdJNRzo5qE/ZisobQaZt67R74zS+ngsmWE+/Vcm3Oyw== lance@pythoninthegrass
+
+zypper:
+  repos:
+    - id: tumbleweed-oss
+      name: os-oss
+      baseurl: http://download.opensuse.org/tumbleweed/repo/oss/
+      enabled: 1
+      autorefresh: 1
+    - id: tumbleweed-update
+      name: os-update
+      baseurl: http://download.opensuse.org/update/tumbleweed/
+      enabled: 1
+      autorefresh: 1
+  config:
+    download.use_deltarpm: true
+
+packages:
+  - cloud-init
+  - cockpit-system
+  - cockpit-podman
+  - qemu-guest-agent
+  - podman
+  - podman-compose
+
+system_info:
+  default_user:
+    name: microos
+    gecos: "cloud-init created default user"
+    lock_passwd: True
+    sudo: ["ALL=(ALL) NOPASSWD:ALL"]
+    shell: /bin/bash
+
+runcmd:
+  - systemctl enable --now qemu-guest-agent.service
+  - podman container runlabel INSTALL registry.opensuse.org/opensuse/cockpit-ws
+  - systemctl enable --now cockpit.socket

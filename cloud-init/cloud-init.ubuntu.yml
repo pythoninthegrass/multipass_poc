@@ -51,6 +51,7 @@ system_info:
 
 users:
   - name: ansible
+    plain_text_passwd: 'ansible'
     sudo: [ALL=(ALL) NOPASSWD:ALL]
     gecos: Ansible
     home: /home/ansible
@@ -64,8 +65,8 @@ runcmd:
   - systemctl enable --now redis-server
   - runuser -l ubuntu -c "wget -O - https://github.com/pythoninthegrass.keys | sudo tee -a ~/.ssh/authorized_keys"
   - runuser -l ubuntu -c "ssh-keyscan github.com >> ~/.ssh/known_hosts"
-  - runuser -l ubuntu -c "sudo chmod -R 0777 /home/ubuntu/git"
   - runuser -l ubuntu -c "mkdir -p /home/ubuntu/git"
+  - runuser -l ubuntu -c "sudo chmod -R 0777 /home/ubuntu/git"
   - runuser -l ubuntu -c "sudo chown -R ubuntu:ubuntu /home/ubuntu/git"
   - runuser -l ansible -c "sudo touch /var/log/ansible.log"
   - runuser -l ansible -c "sudo chown ansible:ansible /var/log/ansible.log"
