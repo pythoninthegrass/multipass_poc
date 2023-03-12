@@ -61,6 +61,7 @@ users:
     no_ssh_fingerprints: true
 
 runcmd:
+  - systemctl enable --now qemu-guest-agent.service
   - systemctl enable --now docker
   - systemctl enable --now redis-server
   - runuser -l ubuntu -c "wget -O - https://github.com/pythoninthegrass.keys | sudo tee -a ~/.ssh/authorized_keys"
