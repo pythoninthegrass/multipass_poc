@@ -2,6 +2,7 @@
 
 ---
 - hosts: localhost
+  connection: local
   become: true
   gather_facts: true
   debugger: on_failed
@@ -14,15 +15,21 @@
     - name: Get running ansible user
       ansible.builtin.set_fact:
         local_user: "{{ lookup('env', 'USER') }}"
+        home_dir: "{{ lookup('env', 'HOME') }}"
+        cacheable: true
       delegate_to: localhost
-    - name: Install git
+
+    - name: Cross-platform dependencies
+      become_user: root
       ansible.builtin.package:
-        name: git
+        name:
+        - acl
+        - git
         state: present
   tasks:
     - name: Setup directory for git repos
       ansible.builtin.file:
-        path: "{{ lookup('env', 'HOME') }}/git"
+        path: "{{ home_dir }}/git"
         state: directory
         owner: "{{ local_user }}"
         group: "{{ local_user }}"
@@ -33,7 +40,7 @@
       become: false
       ansible.builtin.git:
         repo: https://github.com/pythoninthegrass/hardening.git
-        dest: "{{ lookup('env', 'HOME') }}/git/hardening"
+        dest: "{{ home_dir }}/git/hardening"
         clone: true
         update: true
         force: true

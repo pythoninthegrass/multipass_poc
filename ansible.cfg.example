@@ -5,7 +5,9 @@ retry_files_enabled      = False
 remote_tmp              = /tmp/${USER}/ansible
 gathering               = smart
 # * uncomment fact_caching* lines to use fact caching w/redis
-fact_caching            = redis
-fact_caching_prefix      = ansible_facts_
-fact_caching_timeout    = 60
-fact_caching_connection = localhost:6379:0
+# fact_caching                 = jsonfile
+# fact_caching_connection      = ./facts
+fact_caching                 = redis
+fact_caching_prefix           = ansible_facts_
+fact_caching_timeout         = 300
+fact_caching_connection      = localhost:6379:0
