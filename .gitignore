@@ -1,5 +1,7 @@
+**/facts/
 *.retry
 *.bak
+!.gitkeep
 user_key
 user_key.pub
 ansible.cfg
