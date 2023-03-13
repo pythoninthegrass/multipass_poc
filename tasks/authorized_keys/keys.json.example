@@ -1,10 +1,12 @@
-[
+{
+  "users": [
     {
-        "user": "user.name",
+      "user": "user",
         "key": "ssh-rsa ... vmadmin"
     },
     {
-        "user": "user.name",
+     "user": "user2",
         "key": "ssh-rsa ... anotheruser"
-    },
-]
+    }
+  ]
+}

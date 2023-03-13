@@ -2,24 +2,78 @@
 
 ---
 - hosts: localhost
+  connection: local
   become: true
   gather_facts: true
-  debugger: on_failed
+  # debugger: on_failed
   any_errors_fatal: true
   vars:
     os_environment:
       - key: EDITOR
         value: vim
+    users:
+      - "{{ lookup('file', 'authorized_keys/keys.json') | from_json }}"
+  pre_tasks:
+    - name: Install pip
+      ansible.builtin.package:
+        name: python3-pip
+        state: present
+
+    - name: Install jmespath
+      ansible.builtin.pip:
+        name: jmespath
+        state: present
   tasks:
+    - name: Save users var to fact
+      set_fact:
+        jsondata: "{{ users }}"
+      tags: qa
+
+    - name: Print the users variable
+      ansible.builtin.debug:
+        msg: "{{ jsondata }}"
+
+    # TODO: debug key traversal
+    - name: Get the list of users
+      debug: msg="{{ jsondata | json_query(jmesquery) }}"
+      vars:
+         jmesquery: "users[*].[name, key]"
+      tags: qa
+
+    - name: Validate users and authorized_keys variables
+      ansible.builtin.assert:
+        that:
+          - users is defined
+        fail_msg: "users variable is not defined or empty"
+        quiet: true
+      # tags: qa
+
+    - name: Create groups from usernames
+      ansible.builtin.group:
+        name: "{{ item }}"
+        state: present
+      with_items: "{{ users }}"
+      # tags: user
+
     - name: Create user
       ansible.builtin.user:
         name: "{{ item }}"
-        groups: admin, netdev, users, sudo, wheel
+        groups: ["{{ item }}", wheel]
         state: present
         shell: /bin/bash
         create_home: true
-      loop:
-        - "{{ lookup('file', 'authorized_keys/keys.json') | from_json | json_query('user') }}"
+      with_items:
+        - "{{ users | map(attribute='key') | list }}"
+      # tags: user
+
+    - name: Add user public ssh key
+      ansible.builtin.authorized_key:
+        user: "{{ item[0] }}"
+        key: "{{ item[1] }}"
+        state: present
+      with_items: "{{ users | items }}"
+      # tags: user
+
     - name: Validate the sudoers file before saving
       ansible.builtin.lineinfile:
         path: /etc/sudoers
@@ -27,9 +81,4 @@
         regexp: '^%sudo ALL='
         line: '%sudo ALL=(ALL) NOPASSWD: ALL'
         validate: /usr/sbin/visudo -cf %s
-    - name: Add user public ssh key
-      ansible.builtin.authorized_key:
-        user: "{{ item.user }}"
-        key: "{{ item.key }}"
-        state: present
-      loop: "{{ lookup('file', 'authorized_keys/keys.json') | from_json }}"
+      # tags: user
