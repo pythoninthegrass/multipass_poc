@@ -21,14 +21,14 @@
         home_dir: "{{ lookup('env', 'HOME') }}"
         cacheable: true
       delegate_to: localhost
-      tags: qa
+      # tags: qa
 
     - name: Get OS release
       ansible.builtin.set_fact:
         os_release: "{{ ansible_distribution }}-{{ ansible_distribution_major_version }}"
         major_ver: "{{ ansible_distribution_major_version }}"
         distro: "{{ ansible_distribution }}"
-      tags: qa
+      # tags: qa
 
     - name: Cross-platform dependencies
       ansible.builtin.package:
@@ -81,8 +81,42 @@
         - software-properties-common
         - tree
         - vim
+        update_cache: yes
         state: present
       when: ansible_os_family == "Debian"
+
+    - name: Install redhat dependencies
+      ansible.builtin.dnf:
+        name:
+        - automake
+        - checkpolicy
+        - containerd.io
+        - dnf-plugins-core
+        - docker-ce
+        - docker-ce-cli
+        - docker-compose-plugin
+        - gcc
+        - gcc-c++
+        - git
+        - kernel-devel
+        - make
+        - ncurses-devel
+        - openssl-devel
+        - policycoreutils
+        - policycoreutils-python-utils
+        - python3-devel
+        - python3-pip
+        - python3-psutil
+        - python3-setuptools
+        - python3-wheel
+        - redhat-rpm-config
+        - rpm-build
+        - rpmdevtools
+        - terraform
+        - vim-enhanced
+        update_cache: yes
+        state: present
+      when: ansible_os_family == "RedHat"
 
     - name: Enable rpmfusion repos
       ansible.builtin.dnf:
@@ -118,15 +152,21 @@
         mode: 0644
       when: ansible_os_family == "RedHat"
 
-    - name: Install redhat dependencies
+    - name: Install k8s dependencies
       ansible.builtin.dnf:
         name:
-        - dnf-plugins-core
         - helm
         - kubeadm
         - kubectl
         update_cache: yes
         state: present
+      when: ansible_os_family == "RedHat"
+
+    - name: Install k3d
+      ansible.builtin.shell: |
+        curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
+      args:
+        executable: /bin/bash
       when: ansible_os_family == "RedHat"
 
     - name: Add extra repos
@@ -135,38 +175,6 @@
         dnf config-manager --add-repo https://rpm.releases.hashicorp.com/fedora/hashicorp.repo
       args:
         executable: /bin/bash
-      when: ansible_os_family == "RedHat"
-
-    - name: Install redhat devtools and libraries
-      ansible.builtin.dnf:
-        name:
-        - automake
-        - checkpolicy
-        - containerd.io
-        - docker-ce
-        - docker-ce-cli
-        - docker-compose-plugin
-        - gcc
-        - gcc-c++
-        - git
-        - kernel-devel
-        - make
-        - ncurses-devel
-        - openssl-devel
-        - policycoreutils
-        - policycoreutils-python-utils
-        - python3-devel
-        - python3-pip
-        - python3-psutil
-        - python3-setuptools
-        - python3-wheel
-        - redhat-rpm-config
-        - rpm-build
-        - rpmdevtools
-        - terraform
-        - vim-enhanced
-        update_cache: yes
-        state: present
       when: ansible_os_family == "RedHat"
 
     - name: Whitelist docker network

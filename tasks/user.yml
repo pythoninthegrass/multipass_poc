@@ -11,8 +11,6 @@
     os_environment:
       - key: EDITOR
         value: vim
-    users:
-      - "{{ lookup('file', 'authorized_keys/keys.json') | from_json }}"
   pre_tasks:
     - name: Install pip
       ansible.builtin.package:
@@ -24,36 +22,31 @@
         name: jmespath
         state: present
   tasks:
-    - name: Save users var to fact
-      set_fact:
-        jsondata: "{{ users }}"
+    - name: Read .env file
+      ansible.builtin.slurp:
+        src: ../vars/.env.json
+      register: result
       tags: qa
 
-    - name: Print the users variable
-      ansible.builtin.debug:
-        msg: "{{ jsondata }}"
-
-    # TODO: debug key traversal
-    - name: Get the list of users
-      debug: msg="{{ jsondata | json_query(jmesquery) }}"
-      vars:
-         jmesquery: "users[*].[name, key]"
+    - name: Users from .env file
+      set_fact:
+        users: "{{ (result.content | b64decode) | from_json | json_query('users[?name != \"\"].name') }}"
+        keys: "{{ (result.content | b64decode) | from_json | json_query('users[?key != \"\"].key') }}"
       tags: qa
 
     - name: Validate users and authorized_keys variables
       ansible.builtin.assert:
         that:
-          - users is defined
+          - env_vars is defined
         fail_msg: "users variable is not defined or empty"
         quiet: true
-      # tags: qa
 
     - name: Create groups from usernames
       ansible.builtin.group:
         name: "{{ item }}"
         state: present
-      with_items: "{{ users }}"
-      # tags: user
+      with_items:
+        - "{{ users }}"
 
     - name: Create user
       ansible.builtin.user:
@@ -63,16 +56,18 @@
         shell: /bin/bash
         create_home: true
       with_items:
-        - "{{ users | map(attribute='key') | list }}"
-      # tags: user
+        - "{{ users }}"
 
+    # TODO: QA
     - name: Add user public ssh key
       ansible.builtin.authorized_key:
-        user: "{{ item[0] }}"
-        key: "{{ item[1] }}"
+        user: "{{ item.0 }}"
+        key: "{{ item.1 }}"
         state: present
-      with_items: "{{ users | items }}"
-      # tags: user
+      with_together:
+        - {{ users }}
+        - {{ keys }}
+      tags: qa
 
     - name: Validate the sudoers file before saving
       ansible.builtin.lineinfile:
