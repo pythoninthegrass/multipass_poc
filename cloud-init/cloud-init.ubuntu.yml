@@ -209,16 +209,16 @@ write_files:
             nameservers:
               addresses: [1.1.1.1, 1.0.0.1]
 
+  - path: /etc/sysctl.d/enabled_ipv4_forwarding.conf
+    content: |
+      net.ipv4.conf.all.forwarding=1
+
   - path: /etc/systemd/system/docker.service.d/override.conf
     content: |
       # Disable flags to dockerd, all settings are done in /etc/docker/daemon.json
       [Service]
       ExecStart=
       ExecStart=/usr/bin/dockerd
-
-  - path: /etc/sysctl.d/enabled_ipv4_forwarding.conf
-    content: |
-      net.ipv4.conf.all.forwarding=1
 
   - path: /etc/docker/daemon.json
     content: |
